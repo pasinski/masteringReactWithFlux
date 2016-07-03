@@ -1,13 +1,16 @@
 "use strict";
 
-import Reflux  from 'reflux';
-import Actions from 'appRoot/actions';
+import {EventEmitter} from 'events'
+import AppDispatcher from '../blogDispatcher'
+import AbstractStore from './abstractStore'
+import AppConstants from '../appConsts'
 import Request from 'appRoot/SuperAgentMock'
 import Config  from 'appRoot/appConfig';
 
-export default Reflux.createStore({
-	listenables: Actions,
+export default Object.assign({}, AbstractStore, {
+
 	endpoint: Config.apiRoot + '/posts',
+
 	getPostsByPage: function (page = 1, params) {
 		var start   = Config.pageSize * (page-1)
 		,   end     = start + Config.pageSize
@@ -40,10 +43,6 @@ export default Reflux.createStore({
 					var results = res.body;
 					function complete () {
 						console.log('complete the action');
-						// unfortunately if multiple request had been made
-						// They would all get resolved on the first invocation of this
-						// Undesireable, when we are rapid firing searches
-						// Actions.getPostsByPage.completed({ start: query._start, end: query._end, results: results });
 						resolve({ start: query._start, end: query._end, results: results });
 					}
 					if (res.ok) {
@@ -60,8 +59,6 @@ export default Reflux.createStore({
 					} else {
 						console.log("rejecting")
 						reject(Error(err));
-						// same outcome as above
-						// Actions.getPostsByPage.failed(err);
 					}
 					this.currentRequest = null;
 				}.bind(us)); 
@@ -69,6 +66,7 @@ export default Reflux.createStore({
 	},
 	//-- ACTION HANDLERS
 	onGetPost: function (id) {
+		console.log('getting post with id', id)
 		function req () {
 			Request
 				.get(this.endpoint)
@@ -76,32 +74,47 @@ export default Reflux.createStore({
 					id: id
 				})
 				.end(function (err, res) {
-					if (res.ok) {
+					if (res && res.ok) {
 						if (res.body.length > 0) {
-							Actions.getPost.completed(res.body[0]);
+							this.emitSuccess(res.body[0]);
 						} else {
-							Actions.getPost.failed('Post (' + id + ') not found');
+							this.emitFailure('Post (' + id + ') not found');
 						}
 					} else {
-						Actions.getPost.failed(err);
+						this.emitFailure(err);
 					} 
-				});
+				}.bind(this));
 		}
-		Config.loadTimeSimMs ? setTimeout(req.bind(this), Config.loadTimeSimMs) : req();
+		Config.loadTimeSimMs ? setTimeout(req.bind(this), Config.loadTimeSimMs) : req.bind(this)();
 	},
 	onModifyPost: function (post, id) {
 		function req () {
 			Request
-				[id ? 'put' : 'post'](id ? this.endpoint+'/'+id : this.endpoint)
+				[id ? 'put' : 'post'](id ? us.endpoint+'/'+id : this.endpoint)
 				.send(post)
 				.end(function (err, res) {
 					if (res.ok) {
-						Actions.modifyPost.completed(res);
+						this.emitSuccess(res);
 					} else {
-						Actions.modifyPost.completed();
+						this.emitFailure();
 					}
 				});
 		}
-		Config.loadTimeSimMs ? setTimeout(req.bind(this), Config.loadTimeSimMs) : req();
-	}
+		Config.loadTimeSimMs ? setTimeout(req.bind(this), Config.loadTimeSimMs) : req.bind(this)();
+	},
+	dispatchToken : AppDispatcher.register(function(payload){
+		console.log(`Postsstore, received ${payload}`)
+		let action = payload.actionType;
+		let id = payload.id;
+		switch (action){
+			case AppConstants.GET_POST :
+				this.onGetPost(id);
+				break;
+			case AppConstants.MODIFY_POSTS :
+				let post = payload.post;
+				this.onModifyPost(post, id);
+				break;
+
+		}
+	})
 });

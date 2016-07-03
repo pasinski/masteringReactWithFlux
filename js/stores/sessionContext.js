@@ -1,34 +1,34 @@
 "use strict";
 
-import Reflux  from 'reflux';
-import Actions from 'appRoot/actions';
+import AbstractStore from './abstractStore'
+import AppDispatcher from '../blogDispatcher'
+import AppConstants from '../appConsts'
 import Request from 'superagent';
 import Config  from 'appRoot/appConfig';
 import Cookie  from 'appRoot/vendor/cookie';
- 
-export default Reflux.createStore({
-	listenables: Actions,
+
+export default Object.assign({}, AbstractStore, {
 	endpoint: Config.apiRoot + '/users',
 	context: { loggedIn: false },
+	
 	getInitialState: function () { 
 		this.context          = JSON.parse(Cookie.getItem('session')) || {};
 		this.context.loggedIn = this.context.loggedIn || false; 
 		return this.context; 
 	},
-	getResponseResolver: function (action) {
+	getResponseResolver: function () {
 		return function (err, res) {
 			if (res.ok && res.body instanceof Array && res.body.length > 0) {
 				this.context          = res.body[0];
 				this.context.loggedIn = true;
 				this.context.profileImageData = null;
 
-				this.trigger(this.context);
-				action.completed();
+				this.emitSuccess(this.context);
 
 				//console.log("SETTING COOKIE", JSON.stringify(this.context), Cookie.setItem);
 				Cookie.setItem('session', JSON.stringify(this.context));
 			} else {
-				action.failed();
+				this.emitFailure(err)
 			} 
 		}.bind(this);
 	},
@@ -42,13 +42,24 @@ export default Reflux.createStore({
 				'username': name,
 				'password': pass
 			})
-			.end(this.getResponseResolver(Actions.login))
+			.end(this.getResponseResolver())
 			;
 	},
 	onLogOut: function () {
 		Cookie.removeItem('session');
 		this.context = { loggedIn: false };
-		this.trigger(this.context);
-		return true;
-	}
+		this.emitSuccess(this.context);
+	},
+	
+	dispatchToken : AppDispatcher.register(function (payload) {
+		let actionType = payload.actionType;
+		
+		switch (actionType){
+			case AppConstants.LOGIN :
+				let name = payload.name,
+					password = payload.password;
+				this.onLogin(name, password);
+				break;
+		}
+	})
 });

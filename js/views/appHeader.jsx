@@ -1,16 +1,33 @@
 "use strict";
 
 import React             from 'react';
-import Reflux            from 'reflux';
 import { Link, History } from 'react-router';
 import Actions           from 'appRoot/actions';
+import SearchStore       from 'appRoot/stores/search';
 import SessionStore      from 'appRoot/stores/sessionContext';
+import AppConstants		 from 'appRoot/appConsts'
  
 export default React.createClass({
 	mixins: [
-		Reflux.connect(SessionStore, 'session'),
 		History
 	],
+	getInitialState : function () {
+		return SessionStore.context;
+	},
+
+	onChangeSession : function (){
+		this.setState(SessionStore.context);
+	},
+	
+	onChangeSearch : function(){
+		this.setState({query : SearchStore.query})
+	},
+
+	componentDidMount : function(){
+		SessionStore.on(AppConstants.CHANGE_EVENT, this.onChangeSession);
+		SearchStore.on(AppConstants.CHANGE_EVENT, this.onChangeSearch);
+	},
+
 	logOut: function () {
 		Actions.logOut();
 		this.history.pushState('', '/');

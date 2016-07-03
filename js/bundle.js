@@ -26099,7 +26099,7 @@
 	var eventTypes = {
 	  change: {
 	    phasedRegistrationNames: {
-	      bubbled: keyOf({ onChange: null }),
+	      bubbled: keyOf({ onChangeSession: null }),
 	      captured: keyOf({ onChangeCapture: null })
 	    },
 	    dependencies: [topLevelTypes.topBlur, topLevelTypes.topChange, topLevelTypes.topClick, topLevelTypes.topFocus, topLevelTypes.topInput, topLevelTypes.topKeyDown, topLevelTypes.topKeyUp, topLevelTypes.topSelectionChange]
@@ -26331,7 +26331,7 @@
 	}
 
 	/**
-	 * This plugin creates an `onChange` event that normalizes change events
+	 * This plugin creates an `onChangeSession` event that normalizes change events
 	 * across form elements. This event fires at a time when it's possible to
 	 * change the element's value without seeing a flicker.
 	 *
@@ -28995,7 +28995,7 @@
 	      defaultValue: undefined,
 	      value: value != null ? value : inst._wrapperState.initialValue,
 	      checked: checked != null ? checked : inst._wrapperState.initialChecked,
-	      onChange: inst._wrapperState.onChange
+	      onChangeSession: inst._wrapperState.onChangeSession
 	    });
 
 	    return nativeProps;
@@ -29010,7 +29010,7 @@
 	    inst._wrapperState = {
 	      initialChecked: props.defaultChecked || false,
 	      initialValue: defaultValue != null ? defaultValue : null,
-	      onChange: _handleChange.bind(inst)
+	      onChangeSession: _handleChange.bind(inst)
 	    };
 	  },
 
@@ -29133,28 +29133,28 @@
 	}
 	function _assertValueLink(inputProps) {
 	  _assertSingleLink(inputProps);
-	  !(inputProps.value == null && inputProps.onChange == null) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Cannot provide a valueLink and a value or onChange event. If you want ' + 'to use value or onChange, you probably don\'t want to use valueLink.') : invariant(false) : undefined;
+	  !(inputProps.value == null && inputProps.onChangeSession == null) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Cannot provide a valueLink and a value or onChangeSession event. If you want ' + 'to use value or onChangeSession, you probably don\'t want to use valueLink.') : invariant(false) : undefined;
 	}
 
 	function _assertCheckedLink(inputProps) {
 	  _assertSingleLink(inputProps);
-	  !(inputProps.checked == null && inputProps.onChange == null) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Cannot provide a checkedLink and a checked property or onChange event. ' + 'If you want to use checked or onChange, you probably don\'t want to ' + 'use checkedLink') : invariant(false) : undefined;
+	  !(inputProps.checked == null && inputProps.onChangeSession == null) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Cannot provide a checkedLink and a checked property or onChangeSession event. ' + 'If you want to use checked or onChangeSession, you probably don\'t want to ' + 'use checkedLink') : invariant(false) : undefined;
 	}
 
 	var propTypes = {
 	  value: function (props, propName, componentName) {
-	    if (!props[propName] || hasReadOnlyValue[props.type] || props.onChange || props.readOnly || props.disabled) {
+	    if (!props[propName] || hasReadOnlyValue[props.type] || props.onChangeSession || props.readOnly || props.disabled) {
 	      return null;
 	    }
-	    return new Error('You provided a `value` prop to a form field without an ' + '`onChange` handler. This will render a read-only field. If ' + 'the field should be mutable use `defaultValue`. Otherwise, ' + 'set either `onChange` or `readOnly`.');
+	    return new Error('You provided a `value` prop to a form field without an ' + '`onChangeSession` handler. This will render a read-only field. If ' + 'the field should be mutable use `defaultValue`. Otherwise, ' + 'set either `onChangeSession` or `readOnly`.');
 	  },
 	  checked: function (props, propName, componentName) {
-	    if (!props[propName] || props.onChange || props.readOnly || props.disabled) {
+	    if (!props[propName] || props.onChangeSession || props.readOnly || props.disabled) {
 	      return null;
 	    }
-	    return new Error('You provided a `checked` prop to a form field without an ' + '`onChange` handler. This will render a read-only field. If ' + 'the field should be mutable use `defaultChecked`. Otherwise, ' + 'set either `onChange` or `readOnly`.');
+	    return new Error('You provided a `checked` prop to a form field without an ' + '`onChangeSession` handler. This will render a read-only field. If ' + 'the field should be mutable use `defaultChecked`. Otherwise, ' + 'set either `onChangeSession` or `readOnly`.');
 	  },
-	  onChange: ReactPropTypes.func
+	  onChangeSession: ReactPropTypes.func
 	};
 
 	var loggedTypeFailures = {};
@@ -29225,8 +29225,8 @@
 	    } else if (inputProps.checkedLink) {
 	      _assertCheckedLink(inputProps);
 	      return inputProps.checkedLink.requestChange(event.target.checked);
-	    } else if (inputProps.onChange) {
-	      return inputProps.onChange.call(undefined, event);
+	    } else if (inputProps.onChangeSession) {
+	      return inputProps.onChangeSession.call(undefined, event);
 	    }
 	  }
 	};
@@ -30246,7 +30246,7 @@
 
 	  getNativeProps: function (inst, props, context) {
 	    return assign({}, props, {
-	      onChange: inst._wrapperState.onChange,
+	      onChangeSession: inst._wrapperState.onChangeSession,
 	      value: undefined
 	    });
 	  },
@@ -30260,7 +30260,7 @@
 	    inst._wrapperState = {
 	      pendingUpdate: false,
 	      initialValue: value != null ? value : props.defaultValue,
-	      onChange: _handleChange.bind(inst),
+	      onChangeSession: _handleChange.bind(inst),
 	      wasMultiple: Boolean(props.multiple)
 	    };
 	  },
@@ -30368,7 +30368,7 @@
 	      defaultValue: undefined,
 	      value: undefined,
 	      children: inst._wrapperState.initialValue,
-	      onChange: inst._wrapperState.onChange
+	      onChangeSession: inst._wrapperState.onChangeSession
 	    });
 
 	    return nativeProps;
@@ -30405,7 +30405,7 @@
 	      // The initial value can be a boolean or object so that's why it's
 	      // forced to be a string.
 	      initialValue: '' + (value != null ? value : defaultValue),
-	      onChange: _handleChange.bind(inst)
+	      onChangeSession: _handleChange.bind(inst)
 	    };
 	  },
 
@@ -40916,7 +40916,7 @@
 						type: 'search',
 						placeholder: 'search',
 						defaultValue: this.state.initialQuery,
-						onChange: this.search }),
+						onChangeSession: this.search }),
 					this.state.session.loggedIn ? _react2.default.createElement(
 						_reactRouter.Link,
 						{ to: '/posts/create' },
@@ -59525,7 +59525,7 @@
 						name: 'title',
 						value: this.state.post.title,
 						error: this.state.validity.title,
-						onChange: this.titleChange,
+						onChangeSession: this.titleChange,
 						placeholder: 'post title'
 					}),
 					_react2.default.createElement('hr', null),
@@ -70824,7 +70824,7 @@
 						_react2.default.createElement('img', { className: 'profile-img', src: this.state.profileImageData }),
 						_react2.default.createElement(
 							_basicInput2.default,
-							{ name: 'profileImage', type: 'file', ref: 'profileImage', onChange: this.userImageUpload, helptext: this.state.sizeExceeded ? 'less than 1MB' : '' },
+							{ name: 'profileImage', type: 'file', ref: 'profileImage', onChangeSession: this.userImageUpload, helptext: this.state.sizeExceeded ? 'less than 1MB' : '' },
 							_react2.default.createElement(
 								'button',
 								{ onClick: this.chooseFile },

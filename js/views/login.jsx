@@ -4,7 +4,8 @@ import React   from 'react';
 import { History }  from 'react-router';
 import BasicInput   from 'appRoot/components/basicInput';
 import Actions      from 'appRoot/actions';
-import AutoCompleter from 'react-autocompleter'
+import AppConstants from 'appRooot/appConst'
+import UserStore	from 'appRooot/stores/users'
 
 
 export default React.createClass({
@@ -12,8 +13,20 @@ export default React.createClass({
 		History
 	],
 	getInitialState: function () { return {
-		data : ["aaa", "aab", "bba", "bbb", "cba"]
 	}},
+	
+	onChange : function(payload){
+		if(payload.result == "success"){
+			console.log(`SUCCESS: ${payload}`);
+			this.history.pushState('', '/');
+		} else {
+			this.setState({'loginError': 'bad username or password'});
+		}
+	},
+	
+	componentDidMount : function () {
+		UserStore.on(AppConstants.CHANGE_EVENT, this.onChange)
+	},
 	logIn: function (e) {
 		var detail = {};
 
@@ -25,38 +38,8 @@ export default React.createClass({
 		e.preventDefault(); 
 		e.stopPropagation(); 
 
-		Actions.login(detail.username, detail.password)
-			.then(function () {
-				//console.log("SUCCESS", arguments);
-				this.history.pushState('', '/');
-			}.bind(this))
-			['catch'](function () {
-				//console.log("ERROR", arguments);
-				this.setState({'loginError': 'bad username or password'});
-			}.bind(this))
-			;
+		Actions.login(detail.username, detail.password);
 	},
-	atucomplete_styles : {
-		root: {
-			padding: '10px'
-		},
-		input: {
-			fontSize: '14px'
-		},
-		listContainer: {
-			listStyleType: 'none',
-				background: '#ffffff',
-				padding: '20px'
-		},
-		listItems: {
-			padding: '15px',
-
-				'.active': {
-				fontSize: '10px'
-			}
-		}
-	}
-	,
 	render: function () {
 		return (
 			<form className="login-form" onSubmit={this.logIn}>
@@ -66,12 +49,6 @@ export default React.createClass({
 					<BasicInput name="password" type="password" placeholder="password" />
 					{ this.state.loginError && <aside className="error">{this.state.loginError}</aside> }
 					<button type="submit">Log In</button>
-					<AutoCompleter
-						styles = {this.atucomplete_styles}
-						data={ this.state.data }
-						placeholder='Search...'
-						limit={ 10 }
-					/>
 				</fieldset>
 			</form>
 		);
