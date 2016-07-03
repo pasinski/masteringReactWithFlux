@@ -1,13 +1,17 @@
 "use strict";
 
 import React     from 'react';
-import Reflux    from 'reflux';
+
 import { Link }  from 'react-router';
 import UserStore from 'appRoot/stores/users';
 import UserView  from 'appRoot/components/users/view';
-import AppConstants from 'appRoot/appConst'
+import AppConstants from 'appRoot/appConsts'
 
 export default React.createClass({
+
+	getInitialState : function () {
+		return {users : UserStore.users}
+	},
 	
 	componentDidMount : function () {
 		UserStore.on(AppConstants.CHANGE_EVENT, this.onChange)

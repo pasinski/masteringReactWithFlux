@@ -35,7 +35,6 @@ describe('OnGetPost', function () {
 
 
       return PostStore.getPostsByPage(1, {}).then(function (result) {
-         console.log(`resolved ${JSON.stringify(result)}, the results are ${result.results}`);
          expect(result).toExist()
          expect(result.results).toBe('Hello World!');
       });
@@ -44,7 +43,6 @@ describe('OnGetPost', function () {
    it('should fire an event with a post being get', function () {
 
       mockedRequest.get(PostStore.endpoint, function(req) {
-         console.log(JSON.stringify(req))
          return {
             ok: true,
             body: [{

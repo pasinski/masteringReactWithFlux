@@ -7,7 +7,7 @@ import Request from 'superagent';
 import Config  from 'appRoot/appConfig';
 import Cookie  from 'appRoot/vendor/cookie';
 
-export default Object.assign({}, AbstractStore, {
+var store = Object.assign({}, AbstractStore, {
 	endpoint: Config.apiRoot + '/users',
 	context: { loggedIn: false },
 	
@@ -18,7 +18,8 @@ export default Object.assign({}, AbstractStore, {
 	},
 	getResponseResolver: function () {
 		return function (err, res) {
-			if (res.ok && res.body instanceof Array && res.body.length > 0) {
+			console.log("Get Response Resolver", err, res)
+			if (res && res.ok && res.body instanceof Array && res.body.length > 0) {
 				this.context          = res.body[0];
 				this.context.loggedIn = true;
 				this.context.profileImageData = null;
@@ -49,17 +50,22 @@ export default Object.assign({}, AbstractStore, {
 		Cookie.removeItem('session');
 		this.context = { loggedIn: false };
 		this.emitSuccess(this.context);
-	},
-	
-	dispatchToken : AppDispatcher.register(function (payload) {
-		let actionType = payload.actionType;
-		
-		switch (actionType){
-			case AppConstants.LOGIN :
-				let name = payload.name,
-					password = payload.password;
-				this.onLogin(name, password);
-				break;
-		}
-	})
+	}
 });
+
+store.dispatchToken = AppDispatcher.register(function (payload) {
+	let actionType = payload.actionType;
+
+	switch (actionType){
+		case AppConstants.LOGIN :
+			let name = payload.name,
+				password = payload.password;
+			store.onLogin(name, password);
+			break;
+		case AppConstants.LOGOUT :
+			store.onLogOut();
+			break;
+	}
+})
+
+export default store;

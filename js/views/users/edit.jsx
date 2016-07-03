@@ -1,26 +1,28 @@
 "use strict";
 
 import React        from 'react';
-import { History }  from 'react-router';
+import { hashHistory }  from 'react-router';
 import Reflux       from 'reflux';
 import update       from 'react-addons-update';
 import BasicInput   from 'appRoot/components/basicInput';
 import Actions      from 'appRoot/actions';
 import UserStore    from 'appRoot/stores/users';
+import SessionStore    from 'appRoot/stores/sessionContext';
 import {formMixins} from 'appRoot/mixins/utility';
 
 export default React.createClass({
 	mixins: [
-		Reflux.connect(UserStore, 'users'),
-		History,
 		formMixins
 	],
 	getInitialState: function () {
-		return { validity: {} };
+		return { validity: {}, users : UserStore.users };
 	},
 	componentWillMount: function () {
 		this.setPlaceholderImage();
-	}, 
+	},
+	componentDidMount : function () {
+		SessionStore.addChangeListener(this.onUserCreated)
+	},
 	constraints: {
 		'username': {
 			required: true,
@@ -35,6 +37,13 @@ export default React.createClass({
 			minlength: 5
 		}
 	},
+
+	onUserCreated : function (payload) {
+		if(payload.success == true){
+			hashHistory.push('', `/users/${payload.payload.id}`);
+		}
+	},
+
 	createUser: function (e) {
 		var detail = {}
 		,   validationState = {}
@@ -72,10 +81,6 @@ export default React.createClass({
 		this.setState(update(this.state, { validity: validationState }));
 		if (!hasErrors) {
 			Actions.createUser(detail)
-				.then(function (result) {
-					// go to newly created entry
-					this.history.pushState('', `/users/${result.id}`);
-				}.bind(this))
 			; 
 		}
 	},

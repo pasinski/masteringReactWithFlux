@@ -45442,7 +45442,7 @@
 			}
 			var post = this.state.post,
 			    user = this.getUserFromPost(post),
-			    name = user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : user.firstName ? user.firstName : user.username;
+			    name = user && user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : 'dupa';
 
 			return this.props.mode === 'summary' ?
 			// SUMMARY / LIST VIEW

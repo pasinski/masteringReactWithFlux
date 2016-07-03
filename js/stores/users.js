@@ -6,16 +6,12 @@ import AppConstants from '../appConsts'
 import Actions        from 'appRoot/actions';
 import Request        from 'superagent';
 import Config         from 'appRoot/appConfig';
-import SessionStore from 'sessionContext'
+import SessionStore from './sessionContext'
 
-export default Object.assign({}, AbstractStore, {
+var store = Object.assign({}, AbstractStore, {
 	users: [],
 	endpoint: Config.apiRoot + '/users',
-	loginFinished : function(context){
-		this.emitSuccess(context)
-	},
 	init: function () {
-		SessionStore.addChangeListener(this.loginFinished)
 		Request
 			.get(this.endpoint)
 			.end(function (err, res) {
@@ -36,7 +32,7 @@ export default Object.assign({}, AbstractStore, {
 			.send(details)
 			.end(function (err, res) {
 				if (res.ok) {
-					Actions.login(res.body.username, res.password);
+					Actions.login(res.body.username, res.body.password);
 				} else {
 					this.emitFailure(err);
 				} 
@@ -49,19 +45,24 @@ export default Object.assign({}, AbstractStore, {
 	},
 	onEditUser: function (details) {
 		this.modifyUser('put', details);
-	},
-	dispatchToken : AppDispatcher.register(function (payload) {
-		let actionType = payload.actionType;
-
-		switch (actionType){
-			case AppConstants.CREATE_USER :
-				let details = payload.details;
-				this.onCreateUser(details);
-				break;
-			case AppConstants.EDIT_USER : 
-				let details = payload.details;
-				this.onEditUser(details);
-				break;
-		}
-	})
+	}
 });
+
+store.init();
+
+store.dispatchToken = AppDispatcher.register(function (payload) {
+	let actionType = payload.actionType,
+		details = payload.details;
+
+	switch (actionType){
+		case AppConstants.CREATE_USER :
+			store.onCreateUser(Object.assign({op : "new"},details));
+			AppDispatcher.waitFor(SessionStore.dispatchToken)
+			break;
+		case AppConstants.EDIT_USER :
+			store.onEditUser(Object.assign({op : "edit"}, details));
+			break;
+	}
+})
+
+export default store;

@@ -1,10 +1,10 @@
 "use strict";
 
-import AppConstants from 'appConsts';
-import AppDispatcher from 'blogDispatcher'
+import AppConstants from 'appRoot/appConsts';
+import AppDispatcher from 'appRoot/blogDispatcher'
 
 
-var PostsActions = {
+let actions =  {
 		/**
 		 * @param  {string} text
 		 */
@@ -54,3 +54,5 @@ var PostsActions = {
 			})
 		}
 	}
+
+export default actions

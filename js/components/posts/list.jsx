@@ -16,7 +16,6 @@ export default React.createClass({
 		};
 	},
 	componentWillMount: function () {
-		this.searchUnsubscribe = SearchStore.listen(this.onSearch);
 		this.getNextPage();
 	},
 	componentDidMount: function () {
@@ -39,7 +38,6 @@ export default React.createClass({
 		this.scrollParent.addEventListener('scroll', this.onScroll);
 	},
 	componentWillUnmount: function () {
-		this.searchUnsubscribe();
 		this.scrollParent.removeEventListener('scroll', this.onScroll);
 	},
 	onSearch: function (search) {

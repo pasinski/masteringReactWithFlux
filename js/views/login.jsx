@@ -1,31 +1,28 @@
 "use strict";
 
 import React   from 'react';
-import { History }  from 'react-router';
+import {hashHistory} from 'react-router'
 import BasicInput   from 'appRoot/components/basicInput';
 import Actions      from 'appRoot/actions';
-import AppConstants from 'appRooot/appConst'
-import UserStore	from 'appRooot/stores/users'
+import SessionStore	from 'appRoot/stores/sessionContext'
 
 
 export default React.createClass({
-	mixins: [
-		History
-	],
 	getInitialState: function () { return {
 	}},
 	
 	onChange : function(payload){
-		if(payload.result == "success"){
+		console.log('payload', payload)
+		if(payload.success){
 			console.log(`SUCCESS: ${payload}`);
-			this.history.pushState('', '/');
+			hashHistory.push('/')
 		} else {
 			this.setState({'loginError': 'bad username or password'});
 		}
 	},
 	
 	componentDidMount : function () {
-		UserStore.on(AppConstants.CHANGE_EVENT, this.onChange)
+		SessionStore.addChangeListener(this.onChange)
 	},
 	logIn: function (e) {
 		var detail = {};
@@ -35,6 +32,9 @@ export default React.createClass({
 			function (v) {
 				detail[v.getAttribute('name')] = v.value;
 			});
+
+
+
 		e.preventDefault(); 
 		e.stopPropagation(); 
 

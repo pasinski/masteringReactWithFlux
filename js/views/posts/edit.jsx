@@ -1,7 +1,7 @@
 "use strict";
 
 import React        from 'react';
-import { History }  from 'react-router';
+import { hashHistory }  from 'react-router';
 import update       from 'react-addons-update';
 import Reflux       from 'reflux';
 import Quill        from 'quill';
@@ -10,17 +10,16 @@ import Config       from 'appRoot/appConfig';
 import Actions      from 'appRoot/actions';
 import BasicInput   from 'appRoot/components/basicInput';
 import Loader       from 'appRoot/components/loader';
-import Session      from 'appRoot/stores/sessionContext';
 import {formMixins} from 'appRoot/mixins/utility';
+import Session 		from 'appRoot/stores/sessionContext'
+import PostsStore	from 'appRoot/stores/posts'
 
 export default React.createClass({
 	mixins: [
-		Reflux.connect(Session, 'session'),
-		History,
 		formMixins
 	],
 	getInitialState: function () {
-		return { loading: true, validity: {}, post: {} };
+		return { "loading": true, "validity": {}, "post": {}, "session" : Session.context };
 	},
 	constraints: {
 		title: {
@@ -29,11 +28,12 @@ export default React.createClass({
 		}
 	},
 	componentWillMount: function () {
+		console.log("postedit will mount")
 		this.editMode   = this.props.params.hasOwnProperty('postId');
 		this.createMode = !this.editMode;
 		this.postId     = this.editMode ? this.props.params.postId : null;
 
-		this.setState({ loading: this.editMode ? true : false });
+		console.log("edit mode", this.editMode, "create mode", this.createMode)
 
 		if (this.editMode) {
 			Actions.getPost(this.postId)
@@ -47,9 +47,21 @@ export default React.createClass({
 				['catch'](function (err) {
 					this.setState({ error: err, loading: false });
 				}.bind(this));
+		} else {
+			this.setState({loading : false})
 		}
 	},
+
+	postUpdated : function (payload) {
+		console.log('postUpdated', payload)
+		if(payload.success){
+			hashHistory.push('', `/posts/${payload.id}`)
+		}
+		;
+	},
 	componentDidMount: function () {
+		PostsStore.addChangeListener(this.postUpdated)
+		console.log("postedit did mount")
 		var newPostTmpl = '<div>Hello World!</div><div><b>This</b> is my story...</div><div><br/></div>';
 		!this.editMode && this.initQuill(newPostTmpl);
 	},
@@ -87,11 +99,6 @@ export default React.createClass({
 				date: Moment().valueOf(), // unix UTC milliseconds
 				summary: summary
 			}, this.postId)
-			.then(function (result) {
-				// go to newly created entry
-				this.history.pushState('', `/posts/${result.body.id}`);
-			}.bind(this))
-			;
 		}
 	},
 	titleChange: function (e) {

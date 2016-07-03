@@ -14,15 +14,26 @@ import Loader     from 'appRoot/components/loader';
 let dateFormat    = 'MM/DD/YYYY HH:mm:ss';
  
 export default React.createClass({
-	mixins: [
-		Reflux.connect(Session, 'session'),
-		Reflux.connect(UserStore, 'users')
-	],
 	getInitialState: function () {
 		return {
+			session : Session.context,
+			users : UserStore.users,
 			post: this.props.post
 		};
 	},
+
+	onPostGot : function (payload) {
+		if(payload.success){
+			console.log("got post, payload", payload)
+			//this.state.posts = this.state.posts.concat(data);
+			this.setState({
+				loading: false,
+				post: payload.payload
+			});
+		}
+	},
+
+
 	componentWillMount: function () {
 		if (this.state.post) {
 		} else {
@@ -30,6 +41,10 @@ export default React.createClass({
 			this.getPost();
 		}
 	},
+	componentDidMount : function () {
+		PostStore.addChangeListener(this.onPostGot)
+	},
+
 	getUserFromPost: function (post) {
 		return Array.find(this.state.users, function (user) {
 			return user.id === post.user;
@@ -43,30 +58,26 @@ export default React.createClass({
 		}
 
 		Actions.getPost(this.props.params.postId)
-		.then(function (data) {
-			//this.state.posts = this.state.posts.concat(data);
-			this.setState({
-				loading: false,
-				post: data
-			});
-		}.bind(this));  	
 	},
+
+	shouldComponentUpdate : function(nextprops, nextstate){
+		console.log(nextstate)
+		return true;
+	},
+
 	render: function () {
 		if (this.state.loading) { return <Loader />; }
 		var post = this.state.post
 		,   user = this.getUserFromPost(post)
-		,   name = user.firstName && user.lastName ? 
-				user.firstName + ' ' + user.lastName : 
-				user.firstName ?
-				user.firstName : 
-				user.username
-		;
+		,   name = user && user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : 'dupa';
+
+		console.log("state session", this.state.session);
  
 		return this.props.mode === 'summary' ? (
 			// SUMMARY / LIST VIEW
 			<li className="post-view-summary">
 				<aside>
-					<img className="profile-img small" src={user.profileImageData} />
+					<img className="profile-img small" src={user != null ? user.profileImageData : ''} />
 					<div className="post-metadata">
 						<strong>{post.title}</strong>
 						<span className="user-name">{name}</span>
@@ -76,15 +87,7 @@ export default React.createClass({
 				<summary>{post.summary}</summary>
 				&nbsp;
 				<Link to={`/posts/${post.id}`}>read more</Link> 
-				{
-					user.id === this.state.session.id ? (
-						<div>
-							<Link to={`/posts/${post.id}/edit`}>
-								<button>edit post</button>
-							</Link>
-						</div>
-					) : ''
-				}
+				
 			</li> 
 		) : (
 			// FULL POST VIEW

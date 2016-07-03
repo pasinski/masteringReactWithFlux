@@ -1,22 +1,21 @@
 "use strict";
 
 import React             from 'react';
-import { Link, History } from 'react-router';
+import { Link, hashHistory } from 'react-router';
 import Actions           from 'appRoot/actions';
 import SearchStore       from 'appRoot/stores/search';
 import SessionStore      from 'appRoot/stores/sessionContext';
 import AppConstants		 from 'appRoot/appConsts'
  
 export default React.createClass({
-	mixins: [
-		History
-	],
+
 	getInitialState : function () {
-		return SessionStore.context;
+		console.log("SessionStore", SessionStore)
+		return {session : SessionStore.context};
 	},
 
 	onChangeSession : function (){
-		this.setState(SessionStore.context);
+		this.setState({session : SessionStore.context});
 	},
 	
 	onChangeSearch : function(){
@@ -29,8 +28,10 @@ export default React.createClass({
 	},
 
 	logOut: function () {
-		Actions.logOut();
-		this.history.pushState('', '/');
+		console.log('logout')
+		Actions.logout();
+		console.log(this.history)
+		hashHistory.push('/');
 	},
 	search: function () {
 		var searchVal = this.refs.search.value;
